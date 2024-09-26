@@ -47,12 +47,15 @@ document.addEventListener("DOMContentLoaded", () => {
   /************  SHOW INITIAL CONTENT  ************/
 
   // Convert the time remaining in seconds to minutes and seconds, and pad the numbers with zeros if needed
-  const minutes = Math.floor(quiz.timeRemaining / 60).toString().padStart(2, "0");
-  const seconds = (quiz.timeRemaining % 60).toString().padStart(2, "0");
-
+  function timeConverter(time){
+    const minutes = Math.floor(time / 60).toString().padStart(2, "0");
+    const seconds = (time % 60).toString().padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  }
+  
   // Display the time remaining in the time remaining container
   const timeRemainingContainer = document.getElementById("timeRemaining");
-  timeRemainingContainer.innerText = `${minutes}:${seconds}`;
+  timeRemainingContainer.innerText = timeConverter(quiz.timeRemaining);
 
   // Show first question
   showQuestion();
@@ -60,8 +63,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /************  TIMER  ************/
 
-  let timer;
+  let timer = quiz.timeRemaining;
+ 
 
+  var intervalId;
+
+   function intervalHandler(flag){
+    if(flag) {
+      intervalId =setInterval(function(){
+        if(timer>0){
+          timeRemainingContainer.innerText =timeConverter(timer);
+        }
+        else{
+          timeRemainingContainer.innerText = timeConverter(timer);
+          clearInterval(intervalId);
+          showResults()
+        }
+        timer--;
+      },1000)
+    } 
+    else clearInterval(intervalId);
+   }  
+  
+  intervalHandler(true);
 
   /************  EVENT LISTENERS  ************/
 
@@ -79,6 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showQuestion() {
     // If the quiz has ended, show the results
+    
     if (quiz.hasEnded()) {
       showResults();
       return;
@@ -182,6 +207,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }  
 
   function restartButtonHandler(){
+    quiz.timeRemaining = 120;
+    timer = 120;
+    timeRemainingContainer.innerText = timeConverter(quiz.timeRemaining);
+    intervalHandler(true);
     endView.style.display = "none";
     quizView.style.display = "flex";
     quiz.currentQuestionIndex = 0;
@@ -192,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   function showResults() {
-
+    clearInterval(intervalId);
     // YOUR CODE HERE:
     //
     // 1. Hide the quiz view (div#quizView)
